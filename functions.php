@@ -34,20 +34,44 @@ function getRowToEdit($table_name, $id, $pdo)
 function save($table_name, $form_array, $pdo)
 {
     $fields = "";
-    $values = "'";
+    $values = array();
     foreach($form_array as $key => $array) {
         $fields .= $key.", ";
-        $values .= $array['value']."', '";
+        $values[] .= $array['value'];
     }
     //get rid of the trailing comma and space
     $fields = substr($fields, 0, -2);
-    $values = substr($values, 0, -3);
+    //$values = substr($values, 0, -3);
     //the question mark place holders should be generated so the right number is produced for the table in question
     $sql = "INSERT INTO $table_name ($fields) VALUES (?, ?, ?, ?)";
     $statement = $pdo->prepare($sql);
-    $statement->execute([$values]);
-    return $statement;
+    $statement->execute($values);
+    return $values;
 }
+/* duplicate?
+function save($table_name, $form_array, $pdo) {
+		
+		$fields = "";
+		$values = "'";
+		foreach($form_array as $key => $array) {
+			$fields .= $key.", ";
+			$values .= $array['value']."', '";
+		}
+		
+		//get rid of the trailing comma and space
+		$fields = substr($fields, 0, -2);
+		$values = substr($values, 0, -3);
+		
+		//the question mark place holders should be generated so the right number is produced for the table in question
+		$sql = "INSERT INTO $table_name ($fields) VALUES (?, ?, ?, ?)";
+		
+		$statement = $pdo->prepare($sql);
+		$statement->execute([$values]);
+		
+		return $statement;
+		
+}
+*/
 
 // !! not using prepared statements properly
 function updateRow($table_name, $form_array, $id, $pdo)
@@ -74,38 +98,65 @@ function updateRow($table_name, $form_array, $id, $pdo)
  
  // !! Needs to be able to preselect options in drop downs including when...
  // ...editing a row repopulates the form.
- function showForm($action, $form_array)	{
-	$form = "<form method='post' action=".$action.">";
-	foreach($form_array as $key => $value) {
-		$form .= "<p><label>".$form_array[$key]['form_label'];
-		if($form_array[$key]['type']=='select') {
-			$form .= " <select name='".$form_array[$key]['name']."'>";
-			foreach($form_array[$key]['options'] as $key_2 => $value_2) {
-				$form .= "<option value=".$key_2.">".$value_2."</option>";
-			}
-			$form .= "</select";
-		} else {
-			
-			/*
-			$form .= " <input name='".$form_array[$key]['name']
-				."' type='".$form_array[$key]['type']
-				."' value='".$form_array[$key]['value']
-				."'";
-			*/
-			
-			$form .= ' <input name="'.$form_array[$key]["name"]
-				.'" type="'.$form_array[$key]["type"]
-				.'" value="'.$form_array[$key]["value"]
-				.'"';
-				
-			if($form_array[$key]['required']=='required') {
-				$form .=" required";
-			}				
-		}
-	$form .=	"></label> ".$form_array[$key]['error_mssg']."</p>";
-	}
-	$form .= "<input type='submit'> <a href='index.php'> Cancel </a></form></br>";
-	return $form;
+ 
+ /* comment out while working on selected attribute for select options
+ function showForm($action, $form_array)
+ {
+    $form = "<form method='post' action=".$action.">";
+    foreach($form_array as $key => $value) {
+        $form .= "<p><label>".$form_array[$key]['form_label'];
+        if($form_array[$key]['type']=='select') {
+            $form .= " <select name='".$form_array[$key]['name']."'>";
+            foreach($form_array[$key]['options'] as $key_2 => $value_2) {
+                $form .= "<option value=".$key_2.">".$value_2."</option>";
+            }
+        $form .= "</select";
+        } else {
+            $form .= ' <input name="'.$form_array[$key]["name"]
+            .'" type="'.$form_array[$key]["type"]
+            .'" value="'.$form_array[$key]["value"]
+            .'"';
+            if($form_array[$key]['required']=='required') {
+            $form .=" required";
+            }				
+        }
+        $form .=	"></label> ".$form_array[$key]['error_mssg']."</p>";
+    }
+    $form .= "<input type='submit'> <a href='index.php'> Cancel </a></form></br>";
+    return $form;
+}
+*/
+
+ function showForm($action, $form_array)
+ {
+    $form = "<form method='post' action=".$action.">";
+    foreach($form_array as $key => $value) {
+        $form .= "<p><label>".$form_array[$key]['form_label'];
+        if($form_array[$key]['type']=='select') {
+            $form .= " <select name='".$form_array[$key]['name']."'>";
+            foreach($form_array[$key]['options'] as $key_2 => $value_2) {
+                $form .= '<option value="'.$key_2.'"';
+                if($key_2 == $form_array[$key]['value']) {
+                    $form .= ' selected';
+                }
+                $form .= '>'.$value_2.'</options>';
+                
+
+            }
+        $form .= "</select";
+        } else {
+            $form .= ' <input name="'.$form_array[$key]["name"]
+            .'" type="'.$form_array[$key]["type"]
+            .'" value="'.$form_array[$key]["value"]
+            .'"';
+            if($form_array[$key]['required']=='required') {
+            $form .=" required";
+            }				
+        }
+        $form .=	"></label> ".$form_array[$key]['error_mssg']."</p>";
+    }
+    $form .= "<input type='submit'> <a href='index.php'> Cancel </a></form></br>";
+    return $form;
 }
 
 function createTable($statement, $editable=null)
