@@ -127,25 +127,23 @@ function updateRow($table_name, $form_array, $id, $pdo)
 }
 */
 
- function showForm($action, $form_array)
- {
+function showForm($action, $form_array)
+{
     $form = "<form method='post' action=".$action.">";
     foreach($form_array as $key => $value) {
-        $form .= "<p><label>".$form_array[$key]['form_label'];
-        if($form_array[$key]['type']=='select') {
-            $form .= " <select name='".$form_array[$key]['name']."'>";
-            foreach($form_array[$key]['options'] as $key_2 => $value_2) {
-                $form .= '<option value="'.$key_2.'"';
-                if($key_2 == $form_array[$key]['value']) {
-                    $form .= ' selected';
-                }
-                $form .= '>'.$value_2.'</options>';
-                
-
+    	$form .= "<p><label>".$form_array[$key]['form_label'];
+    	if($form_array[$key]['type']=='select') {
+    		$form .= " <select name='".$form_array[$key]['name']."'>";
+         foreach($form_array[$key]['options'] as $key_2 => $value_2) {
+         	$form .= '<option value="'.$key_2.'"';
+            if($key_2 == $form_array[$key]['value']) {
+            	$form .= ' selected';
             }
-        $form .= "</select";
-        } else {
-            $form .= ' <input name="'.$form_array[$key]["name"]
+            $form .= '>'.$value_2.'</options>';
+         }
+         $form .= "</select";
+         } else {
+         	$form .= ' <input name="'.$form_array[$key]["name"]
             .'" type="'.$form_array[$key]["type"]
             .'" value="'.$form_array[$key]["value"]
             .'"';
@@ -184,10 +182,11 @@ function createTable($statement, $editable=null)
  * CONTROLLERS
  */ 
 
-// Note that this function implements a form of whitelisting of user entered $_POST data. Obviously...
-// ... the user entered values can not be anticipated but the names of the keys of $_POST elements ...
-// ... are only accessed if they are in the $form_array. There is no mechanism to change the values of ...
-// ... name elements in the $form_array except by hardcoding them. 
+// This function implements a form of whitelisting of user entered $_POST...
+// ...data. Obviously, the user entered values can not be anticipated but...
+// ...the names of the keys of $_POST elements are only accessed if they...
+// ...are in the $form_array. There is no mechanism to change the values...
+// ... of name elements in the $form_array except by hardcoding them. 
 function assignPostToFormArray($form_array)
 {
 	foreach($form_array as $key => $array)
@@ -196,6 +195,38 @@ function assignPostToFormArray($form_array)
 	}
 	return $form_array;
 }
+
+// This function returns the name of the controller file.
+// The value of $contrl is derived from navigation href values.
+// $contrl is used to select the appropriate controller .php file.
+// $contrl is used to append to the HTML title element.
+// $contrl is used to select the appropriate Smarty .tpl file.
+function getControllerName() {
+		//Determines if a navigation link was clicked
+	$navigationIsClicked = isset( $_GET['page'] );
+	if ( $navigationIsClicked ) {
+    	//prepare to load corresponding controller
+    	$contrl = $_GET['page'];
+	} else {
+    	//prepare to load default controller
+    	$contrl = "home";
+	}
+	return $contrl;
+}
+
+function isFormValid($form_array)
+{
+	$is_form_valid = true;
+	foreach($form_array as $key => $array)
+	{
+		if($form_array[$key]['error_mssg'] != "")
+		{
+			$is_form_valid = false;
+		}
+	}
+	return $is_form_valid;
+}
+
 
 // $db and $table_name arguments are only required if using a validation test which requires access to the database.
 // A test needs to recognise 
@@ -234,17 +265,4 @@ function validateFormArray($form_array, $db=null, $table_name=null)
 	}
 	
 	return $form_array;
-}
-
-function isFormValid($form_array)
-{
-	$is_form_valid = true;
-	foreach($form_array as $key => $array)
-	{
-		if($form_array[$key]['error_mssg'] != "")
-		{
-			$is_form_valid = false;
-		}
-	}
-	return $is_form_valid;
 }
