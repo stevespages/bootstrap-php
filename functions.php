@@ -37,7 +37,7 @@ function save($table_name, $form_array, $pdo)
     $values = array();
     foreach($form_array as $key => $array) {
         $fields .= $key.", ";
-        $values[] .= $array['value'];
+        $values[] = $array['value'];
     }
     //get rid of the trailing comma and space
     $fields = substr($fields, 0, -2);
@@ -48,32 +48,29 @@ function save($table_name, $form_array, $pdo)
     $statement->execute($values);
     return $values;
 }
-/* duplicate?
-function save($table_name, $form_array, $pdo) {
-		
-		$fields = "";
-		$values = "'";
-		foreach($form_array as $key => $array) {
-			$fields .= $key.", ";
-			$values .= $array['value']."', '";
-		}
-		
-		//get rid of the trailing comma and space
-		$fields = substr($fields, 0, -2);
-		$values = substr($values, 0, -3);
-		
-		//the question mark place holders should be generated so the right number is produced for the table in question
-		$sql = "INSERT INTO $table_name ($fields) VALUES (?, ?, ?, ?)";
-		
-		$statement = $pdo->prepare($sql);
-		$statement->execute([$values]);
-		
-		return $statement;
-		
+
+// should now be using prepared statements properly
+function updateRow($table_name, $form_array, $id, $pdo)
+{
+    $sql = "UPDATE $table_name SET ";
+    $values = array();
+    foreach($form_array as $key => $array) {
+        $sql .= $key."=?, ";
+        $values[] = $array['value'];
+    }
+    // get rid of the trailing space and comma
+    $sql = substr($sql, 0, -2);
+    $sql .= " WHERE id=?";
+    $values[] = $id;
+qqq
+    $statement = $pdo->prepare($sql);
+    $statement->execute($values);
+    return $statement;
 }
-*/
+
 
 // !! not using prepared statements properly
+/*
 function updateRow($table_name, $form_array, $id, $pdo)
 {
     $field_value = "";
@@ -90,42 +87,11 @@ function updateRow($table_name, $form_array, $id, $pdo)
     $statement->execute();
     return $statement;
 }
-
+*/
 
 /*
  * VIEWS
  */
- 
- // !! Needs to be able to preselect options in drop downs including when...
- // ...editing a row repopulates the form.
- 
- /* comment out while working on selected attribute for select options
- function showForm($action, $form_array)
- {
-    $form = "<form method='post' action=".$action.">";
-    foreach($form_array as $key => $value) {
-        $form .= "<p><label>".$form_array[$key]['form_label'];
-        if($form_array[$key]['type']=='select') {
-            $form .= " <select name='".$form_array[$key]['name']."'>";
-            foreach($form_array[$key]['options'] as $key_2 => $value_2) {
-                $form .= "<option value=".$key_2.">".$value_2."</option>";
-            }
-        $form .= "</select";
-        } else {
-            $form .= ' <input name="'.$form_array[$key]["name"]
-            .'" type="'.$form_array[$key]["type"]
-            .'" value="'.$form_array[$key]["value"]
-            .'"';
-            if($form_array[$key]['required']=='required') {
-            $form .=" required";
-            }				
-        }
-        $form .=	"></label> ".$form_array[$key]['error_mssg']."</p>";
-    }
-    $form .= "<input type='submit'> <a href='index.php'> Cancel </a></form></br>";
-    return $form;
-}
-*/
 
 function showForm($action, $form_array)
 {

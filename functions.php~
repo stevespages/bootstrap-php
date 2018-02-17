@@ -37,7 +37,7 @@ function save($table_name, $form_array, $pdo)
     $values = array();
     foreach($form_array as $key => $array) {
         $fields .= $key.", ";
-        $values[] .= $array['value'];
+        $values[] = $array['value'];
     }
     //get rid of the trailing comma and space
     $fields = substr($fields, 0, -2);
@@ -48,32 +48,29 @@ function save($table_name, $form_array, $pdo)
     $statement->execute($values);
     return $values;
 }
-/* duplicate?
-function save($table_name, $form_array, $pdo) {
-		
-		$fields = "";
-		$values = "'";
-		foreach($form_array as $key => $array) {
-			$fields .= $key.", ";
-			$values .= $array['value']."', '";
-		}
-		
-		//get rid of the trailing comma and space
-		$fields = substr($fields, 0, -2);
-		$values = substr($values, 0, -3);
-		
-		//the question mark place holders should be generated so the right number is produced for the table in question
-		$sql = "INSERT INTO $table_name ($fields) VALUES (?, ?, ?, ?)";
-		
-		$statement = $pdo->prepare($sql);
-		$statement->execute([$values]);
-		
-		return $statement;
-		
+
+// should now be using prepared statements properly
+function updateRow($table_name, $form_array, $id, $pdo)
+{
+    $sql = "UPDATE $table_name SET ";
+    $values = array();
+    foreach($form_array as $key => $array) {
+        $sql .= $key."=?, ";
+        $values[] = $array['value'];
+    }
+    // get rid of the trailing space and comma
+    $sql = substr($sql, 0, -2);
+    $sql .= " WHERE id=?";
+    $values[] = $id;
+qqq
+    $statement = $pdo->prepare($sql);
+    $statement->execute($values);
+    return $statement;
 }
-*/
+
 
 // !! not using prepared statements properly
+/*
 function updateRow($table_name, $form_array, $id, $pdo)
 {
     $field_value = "";
@@ -90,42 +87,11 @@ function updateRow($table_name, $form_array, $id, $pdo)
     $statement->execute();
     return $statement;
 }
-
+*/
 
 /*
  * VIEWS
  */
- 
- // !! Needs to be able to preselect options in drop downs including when...
- // ...editing a row repopulates the form.
- 
- /* comment out while working on selected attribute for select options
- function showForm($action, $form_array)
- {
-    $form = "<form method='post' action=".$action.">";
-    foreach($form_array as $key => $value) {
-        $form .= "<p><label>".$form_array[$key]['form_label'];
-        if($form_array[$key]['type']=='select') {
-            $form .= " <select name='".$form_array[$key]['name']."'>";
-            foreach($form_array[$key]['options'] as $key_2 => $value_2) {
-                $form .= "<option value=".$key_2.">".$value_2."</option>";
-            }
-        $form .= "</select";
-        } else {
-            $form .= ' <input name="'.$form_array[$key]["name"]
-            .'" type="'.$form_array[$key]["type"]
-            .'" value="'.$form_array[$key]["value"]
-            .'"';
-            if($form_array[$key]['required']=='required') {
-            $form .=" required";
-            }				
-        }
-        $form .=	"></label> ".$form_array[$key]['error_mssg']."</p>";
-    }
-    $form .= "<input type='submit'> <a href='index.php'> Cancel </a></form></br>";
-    return $form;
-}
-*/
 
 function showForm($action, $form_array)
 {
@@ -182,10 +148,11 @@ function createTable($statement, $editable=null)
  * CONTROLLERS
  */ 
 
-// Note that this function implements a form of whitelisting of user entered $_POST data. Obviously...
-// ... the user entered values can not be anticipated but the names of the keys of $_POST elements ...
-// ... are only accessed if they are in the $form_array. There is no mechanism to change the values of ...
-// ... name elements in the $form_array except by hardcoding them. 
+// This function implements a form of whitelisting of user entered $_POST...
+// ...data. Obviously, the user entered values can not be anticipated but...
+// ...the names of the keys of $_POST elements are only accessed if they...
+// ...are in the $form_array. There is no mechanism to change the values...
+// ... of name elements in the $form_array except by hardcoding them. 
 function assignPostToFormArray($form_array)
 {
 	foreach($form_array as $key => $array)
@@ -195,7 +162,11 @@ function assignPostToFormArray($form_array)
 	return $form_array;
 }
 
-//this function returns the name of the controller file. Same name is used for navigation href values and in title elements.
+// This function returns the name of the controller file.
+// The value of $contrl is derived from navigation href values.
+// $contrl is used to select the appropriate controller .php file.
+// $contrl is used to append to the HTML title element.
+// $contrl is used to select the appropriate Smarty .tpl file.
 function getControllerName() {
 		//Determines if a navigation link was clicked
 	$navigationIsClicked = isset( $_GET['page'] );
