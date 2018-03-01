@@ -34,16 +34,19 @@ function getRowToEdit($table_name, $id, $pdo)
 function save($table_name, $form_array, $pdo)
 {
     $fields = "";
+    $placeholders = "";
     $values = array();
     foreach($form_array as $key => $array) {
         $fields .= $key.", ";
+        $placeholders .= "?, ";
         $values[] = $array['value'];
     }
     //get rid of the trailing comma and space
     $fields = substr($fields, 0, -2);
+    $placeholders = substr($placeholders, 0, -2);
     //$values = substr($values, 0, -3);
     //the question mark place holders should be generated so the right number is produced for the table in question
-    $sql = "INSERT INTO $table_name ($fields) VALUES (?, ?, ?, ?)";
+    $sql = "INSERT INTO $table_name ($fields) VALUES ($placeholders)";
     $statement = $pdo->prepare($sql);
     $statement->execute($values);
     return $values;
@@ -62,7 +65,6 @@ function updateRow($table_name, $form_array, $id, $pdo)
     $sql = substr($sql, 0, -2);
     $sql .= " WHERE id=?";
     $values[] = $id;
-qqq
     $statement = $pdo->prepare($sql);
     $statement->execute($values);
     return $statement;
@@ -89,9 +91,44 @@ function updateRow($table_name, $form_array, $id, $pdo)
 }
 */
 
+
 /*
  * VIEWS
  */
+
+
+ // Creates HTML for site navigation
+function createNavigation($navigation_links)
+{
+	$navigation = '<p>| ';
+	foreach($navigation_links as $key => $value) {
+	    $navigation .= '<a href="'.$value.'">'.$key.'</a> | ';
+	}
+	$navigation .= '</p>';
+	return $navigation;
+}
+
+
+function createTable($statement, $editable=null)
+{
+	$table = "<div><table border=1>";
+	while($row = $statement->fetchObject())
+	{
+		$table .= "<tr>";
+		foreach($row as $key => $value)
+		{
+			$table .= "<td>".$value."</td>";
+		}
+		if($editable) {
+			$table .= "<td><a href='index.php?pg=edit&id=".$row->id."'>Edit?</a></td>";
+			$table .= "<td><a href='index.php?pg=delete&id=".$row->id."'>Delete?</a></td>";
+		}
+		$table .= "</tr>";
+	}
+	$table .= "</table></div>";
+	return $table;
+}
+
 
 function showForm($action, $form_array)
 {
@@ -123,26 +160,6 @@ function showForm($action, $form_array)
     return $form;
 }
 
-function createTable($statement, $editable=null)
-{
-	$table = "<div><table border=1>";
-	while($row = $statement->fetchObject())
-	{
-		$table .= "<tr>";
-		foreach($row as $key => $value)
-		{
-			$table .= "<td>".$value."</td>";
-		}
-		if($editable) {
-			$table .= "<td><a href='index.php?pg=edit&id=".$row->id."'>Edit?</a></td>";
-			$table .= "<td><a href='index.php?pg=delete&id=".$row->id."'>Delete?</a></td>";
-		}
-		$table .= "</tr>";
-	}
-	$table .= "</table></div>";
-	return $table;
-}
-
 
 /*
  * CONTROLLERS
@@ -161,6 +178,31 @@ function assignPostToFormArray($form_array)
 	}
 	return $form_array;
 }
+
+
+// creates a path from a navigation name usable in a URL
+// Uses createSlug()
+// Used in createLinks()
+function createLink($navigation_name, $front_controller)
+{
+	$slug = createSlug($navigation_name);
+	$link = $front_controller.'?page='.$slug;
+	return $link;
+}
+
+
+// Creates an array of navigation names as keys with paths usable in URLs...
+// ...as values
+// Uses createLink()
+function createLinks($navigation_names, $front_controller)
+{
+    $navigation_links = array();
+    foreach($navigation_names as $key => $value) {
+        $navigation_links[$value] = createLink($value, $front_controller);
+    }
+    return $navigation_links;
+}
+
 
 // This function returns the name of the controller file.
 // The value of $contrl is derived from navigation href values.
@@ -192,6 +234,56 @@ function isFormValid($form_array)
 	}
 	return $is_form_valid;
 }
+
+
+/**
+    * Taken from https://core.trac.wordpress.org/browser/tags/4.9.2/src/wp-includes/formatting.php#L0
+    * 
+	 * Sanitizes a title, or returns a fallback title.
+	 *
+	 * Specifically, HTML and PHP tags are stripped. Further actions can be added
+	 * via the plugin API. If $title is empty and $fallback_title is set, the latter
+	 * will be used.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string $title          The string to be sanitized.
+	 * @param string $fallback_title Optional. A title to use if $title is empty.
+	 * @param string $context        Optional. The operation for which the string is sanitized
+	 * @return string The sanitized string.
+	 */
+	function sanitize_title( $title, $fallback_title = '', $context = 'save' ) {
+	        $raw_title = $title;
+	
+	        if ( 'save' == $context )
+	                $title = remove_accents($title);
+	
+	        /**
+	         * Filters a sanitized title string.
+	         *
+	         * @since 1.2.0
+	         *
+	         * @param string $title     Sanitized title.
+	         * @param string $raw_title The title prior to sanitization.
+	         * @param string $context   The context for which the title is being sanitized.
+	         */
+	        $title = apply_filters( 'sanitize_title', $title, $raw_title, $context );
+	
+	        if ( '' === $title || false === $title )
+	                $title = $fallback_title;
+	
+	        return $title;
+	}
+	
+	
+// Creates a slug from a navigation name
+// Used in createLink()
+function createSlug($navigation_name)
+{
+	$slug = strtolower($navigation_name);
+	$slug = str_replace(" ", "-", $slug);
+	return $slug;
+}	
 
 
 // $db and $table_name arguments are only required if using a validation test which requires access to the database.
