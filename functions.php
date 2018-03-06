@@ -3,9 +3,11 @@
 // This file is in a directory called 'functions/'. It is being tracked with git and pushed to GitHub
 
 
+
 /*
  * MODELS
  */
+ 
  
 function deleteRow($table_name, $id, $pdo)
 {
@@ -21,7 +23,8 @@ function getAll($table_name, $pdo)
     $statement = $pdo->query($sql);
     return $statement;
 }
-	
+
+
 function getRowToEdit($table_name, $id, $pdo)
 {
     $sql = "SELECT * FROM $table_name WHERE id = ?";
@@ -29,6 +32,7 @@ function getRowToEdit($table_name, $id, $pdo)
     $statement->execute([$id]);
     return $statement;
 }
+
 
 // it is not obvious how to bind parameters when they are in array variables of varying length
 function save($table_name, $form_array, $pdo)
@@ -50,6 +54,7 @@ function save($table_name, $form_array, $pdo)
     return $values;
 }
 
+
 // should now be using prepared statements properly
 function updateRow($table_name, $form_array, $id, $pdo)
 {
@@ -69,26 +74,6 @@ function updateRow($table_name, $form_array, $id, $pdo)
 }
 
 
-// !! not using prepared statements properly
-/*
-function updateRow($table_name, $form_array, $id, $pdo)
-{
-    $field_value = "";
-    foreach($form_array as $key => $array) {
-        $field_value .= $key;
-        $field_value .= " = '";
-        $field_value .= $array['value'];
-        $field_value .= "', ";
-    }
-    // get rid of the trailing comma
-    $field_value = substr($field_value, 0, -2);
-    $sql = "UPDATE $table_name SET $field_value WHERE id = $id";
-    $statement = $pdo->prepare($sql);
-    $statement->execute();
-    return $statement;
-}
-*/
-
 
 /*
  * VIEWS
@@ -106,8 +91,10 @@ function createNavigation($navigation_links)
 	return $navigation;
 }
 
-
-function createTable($statement, $editable=null)
+// action might be better than pg for the query string
+// might be good to add page=.$page so edit and delete requests go to the...
+// ... correct page.
+function createTable($statement, $page, $editable=null)
 {
 	$table = "<div><table border=1>";
 	while($row = $statement->fetchObject())
@@ -118,8 +105,8 @@ function createTable($statement, $editable=null)
 			$table .= "<td>".$value."</td>";
 		}
 		if($editable) {
-			$table .= "<td><a href='index.php?pg=edit&id=".$row->id."'>Edit?</a></td>";
-			$table .= "<td><a href='index.php?pg=delete&id=".$row->id."'>Delete?</a></td>";
+			$table .= "<td><a href='index.php?page=".$page."&action=edit&id=".$row->id."'>Edit?</a></td>";
+			$table .= "<td><a href='index.php?page=".$page."&action=delete&id=".$row->id."'>Delete?</a></td>";
 		}
 		$table .= "</tr>";
 	}
@@ -128,9 +115,14 @@ function createTable($statement, $editable=null)
 }
 
 
-function showForm($action, $form_array)
+// conditionally add something like: <input type="hidden" name="MAX_FILE_SIZE" value="30000" /> 
+function showForm($action, $form_array, $enctype=false)// new argument
 {
-    $form = "<form method='post' action=".$action.">";
+    $form = "<form method='post' action=".$action;
+    if($enctype === true) { // new if statement
+        $form .= " enctype='multipart/form-data'";
+    }
+    $form .= ">";
     foreach($form_array as $key => $value) {
     	$form .= "<p><label>".$form_array[$key]['form_label'];
     	if($form_array[$key]['type']=='select') {
@@ -159,9 +151,26 @@ function showForm($action, $form_array)
 }
 
 
+
 /*
  * CONTROLLERS
- */ 
+ */
+ 
+ // this should be renamed to assignFileUploadToFormArray as it will assign...
+ // ...$_FILE['image_1']['name'] to $form_array['image_1']['value'] and also...
+ // ...$_FILE['image_1']['error'] to $form_array['image_1]['error_mssg']
+function assignFileUploadErrorsToFormArray($form_array)
+{
+    foreach($form_array as $key => $array) {
+        if($form_array[$key]['type'] == 'file') {
+            if($_FILES[$form_array[$key]['name']]['error'] != 0) {
+		          $form_array[$key]['error_mssg'] = $_FILES[$key]['error'];
+            }
+        }
+    }
+    return $form_array;
+}
+
 
 // This function implements a form of whitelisting of user entered $_POST...
 // ...data. Obviously, the user entered values can not be anticipated but...
@@ -172,12 +181,14 @@ function assignPostToFormArray($form_array)
 {
 	foreach($form_array as $key => $array)
 	{
-		$form_array[$key]['value'] = htmlentities($_POST[$form_array[$key]['name']]);
+		if($form_array[$key]['type'] != 'file') {
+		    $form_array[$key]['value'] = htmlentities($_POST[$form_array[$key]['name']]);
+		}
 	}
 	return $form_array;
 }
 
-
+/* NOT REQUIRED?
 // creates a path from a navigation name usable in a URL
 // Uses createSlug()
 // Used in createLinks()
@@ -187,19 +198,31 @@ function createLink($navigation_name, $front_controller)
 	$link = $front_controller.'?page='.$slug;
 	return $link;
 }
-
+*/
 
 // Creates an array of navigation names as keys with paths usable in URLs...
 // ...as values
-// Uses createLink()
 function createLinks($navigation_names, $front_controller)
 {
     $navigation_links = array();
-    foreach($navigation_names as $key => $value) {
-        $navigation_links[$value] = createLink($value, $front_controller);
+    foreach($navigation_names as $value) {
+    	  $query_value = str_replace(" ", "-", strtolower($value));
+        $navigation_links[$value] = $front_controller.'?page='.$query_value;
     }
     return $navigation_links;
 }
+
+
+/* NOT REQUIRED?
+// Creates a slug from a navigation name
+// Used in createLink()
+function createSlug($navigation_name)
+{
+	$slug = strtolower($navigation_name);
+	$slug = str_replace(" ", "-", $slug);
+	return $slug;
+}
+*/
 
 
 // This function returns the name of the controller file.
@@ -207,11 +230,14 @@ function createLinks($navigation_names, $front_controller)
 // $contrl is used to select the appropriate controller .php file.
 // $contrl is used to append to the HTML title element.
 // $contrl is used to select the appropriate Smarty .tpl file.
-function getControllerName() {
+function getControllerName()
+{
 		//Determines if a navigation link was clicked
+		//should $_GET['page'] be (user input) be made safe?
 	$navigationIsClicked = isset( $_GET['page'] );
 	if ( $navigationIsClicked ) {
     	//prepare to load corresponding controller
+    	//should $_GET['page'] be (user input) be made safe?
     	$contrl = $_GET['page'];
 	} else {
     	//prepare to load default controller
@@ -219,6 +245,8 @@ function getControllerName() {
 	}
 	return $contrl;
 }
+
+
 
 function isFormValid($form_array)
 {
@@ -233,55 +261,17 @@ function isFormValid($form_array)
 	return $is_form_valid;
 }
 
-
-/**
-    * Taken from https://core.trac.wordpress.org/browser/tags/4.9.2/src/wp-includes/formatting.php#L0
-    * 
-	 * Sanitizes a title, or returns a fallback title.
-	 *
-	 * Specifically, HTML and PHP tags are stripped. Further actions can be added
-	 * via the plugin API. If $title is empty and $fallback_title is set, the latter
-	 * will be used.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param string $title          The string to be sanitized.
-	 * @param string $fallback_title Optional. A title to use if $title is empty.
-	 * @param string $context        Optional. The operation for which the string is sanitized
-	 * @return string The sanitized string.
-	 */
-	function sanitize_title( $title, $fallback_title = '', $context = 'save' ) {
-	        $raw_title = $title;
-	
-	        if ( 'save' == $context )
-	                $title = remove_accents($title);
-	
-	        /**
-	         * Filters a sanitized title string.
-	         *
-	         * @since 1.2.0
-	         *
-	         * @param string $title     Sanitized title.
-	         * @param string $raw_title The title prior to sanitization.
-	         * @param string $context   The context for which the title is being sanitized.
-	         */
-	        $title = apply_filters( 'sanitize_title', $title, $raw_title, $context );
-	
-	        if ( '' === $title || false === $title )
-	                $title = $fallback_title;
-	
-	        return $title;
-	}
-	
-	
-// Creates a slug from a navigation name
-// Used in createLink()
-function createSlug($navigation_name)
+// this function probably does not work
+// it should return true or the error message
+function moveFiles($form_array, $upload_dir)
 {
-	$slug = strtolower($navigation_name);
-	$slug = str_replace(" ", "-", $slug);
-	return $slug;
-}	
+    foreach($form_array as $key => $array) {
+        if($form_array[$key]['type'] == 'file') {
+            $upload_file = $upload_dir . basename(htmlentities($_FILES[$key]['name']));
+	         move_uploaded_file(htmlentities($_FILES[$key]['tmp_name']), $upload_file);
+	     }
+    }
+}
 
 
 // $db and $table_name arguments are only required if using a validation test which requires access to the database.
