@@ -159,11 +159,12 @@ function showForm($action, $form_array, $enctype=false)// new argument
  // this should be renamed to assignFileUploadToFormArray as it will assign...
  // ...$_FILE['image_1']['name'] to $form_array['image_1']['value'] and also...
  // ...$_FILE['image_1']['error'] to $form_array['image_1]['error_mssg']
-function assignFileUploadErrorsToFormArray($form_array)
+function assignFileUploadToFormArray($form_array)
 {
     foreach($form_array as $key => $array) {
         if($form_array[$key]['type'] == 'file') {
-            if($_FILES[$form_array[$key]['name']]['error'] != 0) {
+            $form_array[$key]['value'] = $_FILES[$key]['name'];
+            if($_FILES[$key]['error'] != 0) {
 		          $form_array[$key]['error_mssg'] = $_FILES[$key]['error'];
             }
         }
@@ -268,9 +269,13 @@ function moveFiles($form_array, $upload_dir)
     foreach($form_array as $key => $array) {
         if($form_array[$key]['type'] == 'file') {
             $upload_file = $upload_dir . basename(htmlentities($_FILES[$key]['name']));
-	         move_uploaded_file(htmlentities($_FILES[$key]['tmp_name']), $upload_file);
+	         $move = move_uploaded_file($_FILES[$key]['tmp_name'], $upload_file);
+	         if($move != true) {
+	         	$form_array[$key]['error_mssg'] = 'There is a problem with this file';
+	         }
 	     }
     }
+    return $form_array;
 }
 
 

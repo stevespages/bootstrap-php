@@ -159,11 +159,12 @@ function showForm($action, $form_array, $enctype=false)// new argument
  // this should be renamed to assignFileUploadToFormArray as it will assign...
  // ...$_FILE['image_1']['name'] to $form_array['image_1']['value'] and also...
  // ...$_FILE['image_1']['error'] to $form_array['image_1]['error_mssg']
-function assignFileUploadErrorsToFormArray($form_array)
+function assignFileUploadToFormArray($form_array)
 {
     foreach($form_array as $key => $array) {
         if($form_array[$key]['type'] == 'file') {
-            if($_FILES[$form_array[$key]['name']]['error'] != 0) {
+            $form_array[$key]['value'] = $_FILES[$key]['name'];
+            if($_FILES[$key]['error'] != 0) {
 		          $form_array[$key]['error_mssg'] = $_FILES[$key]['error'];
             }
         }
@@ -262,6 +263,7 @@ function isFormValid($form_array)
 }
 
 // this function probably does not work
+// it should return true or the error message
 function moveFiles($form_array, $upload_dir)
 {
     foreach($form_array as $key => $array) {
