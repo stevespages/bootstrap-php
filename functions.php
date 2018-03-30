@@ -83,7 +83,7 @@ function updateRow($table_name, $form_array, $id, $pdo)
  // Creates HTML for site navigation
 function createNavigation($navigation_links)
 {
-	$navigation = '<p>| ';
+	$navigation = '<p class="nav-menu">| ';
 	foreach($navigation_links as $key => $value) {
 	    $navigation .= '<a href="'.$value.'">'.$key.'</a> | ';
 	}
@@ -91,10 +91,10 @@ function createNavigation($navigation_links)
 	return $navigation;
 }
 
-// action might be better than pg for the query string
+
 // might be good to add page=.$page so edit and delete requests go to the...
 // ... correct page.
-function createTable($statement, $page, $editable=null)
+function createTable($statement, $page, $editable=null, $display_id)
 {
 	$table = "<div><table border=1>";
 	while($row = $statement->fetchObject())
@@ -102,11 +102,17 @@ function createTable($statement, $page, $editable=null)
 		$table .= "<tr>";
 		foreach($row as $key => $value)
 		{
+			if($key != 'id' || $display_id === true) {
+			if(strpos($key, 'image_') !== false) {
+				$table .= "<td><img src=images/".$value." alt='no picture available' height='42' width='42'></td>";
+		   } else {
 			$table .= "<td>".$value."</td>";
 		}
+		}
+		}
 		if($editable) {
-			$table .= "<td><a href='index.php?page=".$page."&action=edit&id=".$row->id."'>Edit?</a></td>";
-			$table .= "<td><a href='index.php?page=".$page."&action=delete&id=".$row->id."'>Delete?</a></td>";
+			$table .= "<td><a href='admin.php?page=".$page."&action=edit&id=".$row->id."'>Edit?</a></td>";
+			$table .= "<td><a href='admin.php?page=".$page."&action=delete&id=".$row->id."'>Delete?</a></td>";
 		}
 		$table .= "</tr>";
 	}
@@ -163,10 +169,16 @@ function assignFileUploadToFormArray($form_array)
 {
     foreach($form_array as $key => $array) {
         if($form_array[$key]['type'] == 'file') {
-            $form_array[$key]['value'] = $_FILES[$key]['name'];
-            if($_FILES[$key]['error'] != 0) {
-		          $form_array[$key]['error_mssg'] = $_FILES[$key]['error'];
+        	
+            if($_FILES[$key]['name'] != "" || $form_array[$key]['required'] == 'required') {
+      
+                $form_array[$key]['value'] = $_FILES[$key]['name'];
+                if($_FILES[$key]['error'] != 0) {
+		              $form_array[$key]['error_mssg'] = $_FILES[$key]['error'];
+                }
+              
             }
+            
         }
     }
     return $form_array;
@@ -227,26 +239,30 @@ function createSlug($navigation_name)
 
 
 // This function returns the name of the controller file.
-// The value of $contrl is derived from navigation href values.
-// $contrl is used to select the appropriate controller .php file.
-// $contrl is used to append to the HTML title element.
-// $contrl is used to select the appropriate Smarty .tpl file.
-function getControllerName()
+// $navigation_names array is declared and assigned in MODELS
+// Set value of $controller from URL query string which come from href values
+// First check that there was a query string in the URL
+// controller is used to select the appropriate controller.php file.
+// controller is used to append to the HTML title element.
+// controller is used page subheading (optionally).
+function getControllerName($navigation_names) 
 {
-		//Determines if a navigation link was clicked
-		//should $_GET['page'] be (user input) be made safe?
-	$navigationIsClicked = isset( $_GET['page'] );
-	if ( $navigationIsClicked ) {
-    	//prepare to load corresponding controller
-    	//should $_GET['page'] be (user input) be made safe?
-    	$contrl = $_GET['page'];
-	} else {
-    	//prepare to load default controller
-    	$contrl = "home";
-	}
-	return $contrl;
+if(isset( $_GET['page'])) {
+    // now whitelist $_GET['page'] to prevent spurious user input
+    if (in_array(ucwords(str_replace("-", " ", $_GET['page'])), $navigation_names)) {
+        $controller = $_GET['page'];
+        return $controller;
+    } else {
+    	  // if $_GET['page'] not in whitelist
+	     $controller = 'home';
+	     return $controller;
+    }
+} else {
+	// if there was no query sting ie. isset($_GET['page']) returns false
+	$controller = 'home';
+	return $controller;
 }
-
+}
 
 
 function isFormValid($form_array)
@@ -268,11 +284,19 @@ function moveFiles($form_array, $upload_dir)
 {
     foreach($form_array as $key => $array) {
         if($form_array[$key]['type'] == 'file') {
+        	
+            if($form_array[$key]['value'] != "") {
+        	
+        	
             $upload_file = $upload_dir . basename(htmlentities($_FILES[$key]['name']));
 	         $move = move_uploaded_file($_FILES[$key]['tmp_name'], $upload_file);
 	         if($move != true) {
 	         	$form_array[$key]['error_mssg'] = 'There is a problem with this file';
 	         }
+	         
+	         
+	         }
+	         
 	     }
     }
     return $form_array;
