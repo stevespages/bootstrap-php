@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta content="text/html; charset=UTF-8" http-equiv="content-type" />
+	<title>Untitled Test Suite</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">Untitled Test Case</td></tr>
+</thead>
+<tbody>
+<tr><td>open</td><td>http://localhost/Public/test-functions/index.php?page=action<datalist><option>http://localhost/Public/test-functions/index.php?page=action</option></datalist></td><td></td>
+</tr>
+<tr><td>clickAt</td><td>link=Inner Peace<datalist><option>link=Inner Peace</option><option>//a[contains(text(),'Inner Peace')]</option><option>//a[contains(@href, 'index.php?page=inner-peace')]</option><option>//a[2]</option></datalist></td><td>15,8</td>
+</tr>
+<tr><td>clickAt</td><td>link=Action<datalist><option>link=Action</option><option>//a[contains(text(),'Action')]</option><option>//a[contains(@href, 'index.php?page=action')]</option><option>//a[3]</option></datalist></td><td>13,7</td>
+</tr>
+<tr><td>clickAt</td><td>link=Home<datalist><option>link=Home</option><option>css=a</option><option>//a[contains(text(),'Home')]</option><option>//a[contains(@href, 'index.php?page=home')]</option><option>//a</option></datalist></td><td>19,11</td>
+</tr>
+<tr><td>clickAt</td><td>link=Admin<datalist><option>link=Admin</option><option>//a[contains(text(),'Admin')]</option><option>//a[contains(@href, 'admin.php')]</option><option>//a[4]</option></datalist></td><td>19,6</td>
+</tr>
+<tr><td>clickAt</td><td>css=input[type="submit"]<datalist><option>css=input[type="submit"]</option><option>//input[@type='submit']</option><option>//p[2]/input</option></datalist></td><td>103,14</td>
+</tr>
+<tr><td>clickAt</td><td>name=quote_of_the_day<datalist><option>name=quote_of_the_day</option><option>css=input[name="quote_of_the_day"]</option><option>//input[@name='quote_of_the_day']</option><option>//input</option></datalist></td><td>63,9</td>
+</tr>
+<tr><td>type</td><td>name=quote_of_the_day<datalist><option>name=quote_of_the_day</option><option>css=input[name="quote_of_the_day"]</option><option>//input[@name='quote_of_the_day']</option><option>//input</option></datalist></td><td>a</td>
+</tr>
+<tr><td>clickAt</td><td>name=author<datalist><option>name=author</option><option>css=input[name="author"]</option><option>//input[@name='author']</option><option>//p[2]/label/input</option></datalist></td><td>13,19</td>
+</tr>
+<tr><td>clickAt</td><td>name=author<datalist><option>name=author</option><option>css=input[name="author"]</option><option>//input[@name='author']</option><option>//p[2]/label/input</option></datalist></td><td>31,17</td>
+</tr>
+<tr><td>type</td><td>name=author<datalist><option>name=author</option><option>css=input[name="author"]</option><option>//input[@name='author']</option><option>//p[2]/label/input</option></datalist></td><td>b</td>
+</tr>
+<tr><td>clickAt</td><td>css=input[type="submit"]<datalist><option>css=input[type="submit"]</option><option>//input[@type='submit']</option><option>//form/input</option></datalist></td><td>76,20</td>
+</tr>
+<tr><td>clickAt</td><td>link=Say Omm<datalist><option>link=Say Omm</option><option>//a[contains(text(),'Say Omm')]</option><option>//a[contains(@href, 'admin.php?page=say-omm')]</option><option>//a[2]</option></datalist></td><td>14,6</td>
+</tr>
+<tr><td>clickAt</td><td>link=The Bigger Picture<datalist><option>link=The Bigger Picture</option><option>//a[contains(text(),'The Bigger Picture')]</option><option>//a[contains(@href, 'admin.php?page=the-bigger-picture')]</option><option>//a[3]</option></datalist></td><td>22,9</td>
+</tr>
+<tr><td>clickAt</td><td>link=Main Site<datalist><option>link=Main Site</option><option>//a[contains(text(),'Main Site')]</option><option>//a[contains(@href, 'index.php')]</option><option>//a[4]</option></datalist></td><td>17,9</td>
+</tr>
+</tbody></table>
+</body>
+</html>
