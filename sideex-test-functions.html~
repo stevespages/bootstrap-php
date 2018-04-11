@@ -11,7 +11,7 @@
 <tr><td rowspan="1" colspan="3">Untitled Test Case</td></tr>
 </thead>
 <tbody>
-<tr><td>open</td><td>http://localhost/Public/functions/index.php?page=action<datalist><option>http://localhost/Public/test-functions/index.php?page=action</option></datalist></td><td></td>
+<tr><td>open</td><td>http://localhost/Public/test-functions/index.php?page=action<datalist><option>http://localhost/Public/test-functions/index.php?page=action</option></datalist></td><td></td>
 </tr>
 <tr><td>clickAt</td><td>link=Inner Peace<datalist><option>link=Inner Peace</option><option>//a[contains(text(),'Inner Peace')]</option><option>//a[contains(@href, 'index.php?page=inner-peace')]</option><option>//a[2]</option></datalist></td><td>15,8</td>
 </tr>

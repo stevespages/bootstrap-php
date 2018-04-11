@@ -36,7 +36,7 @@ if($_SESSION['valid'] == "Yes") {
 // CONTROLLER
 
 function login()
-{ 
+{
     if ($_SERVER['REQUEST_METHOD'] == 'POST')	{
         if ($_POST['password'] == "1234")	{
             $_SESSION['valid'] = "Yes";
@@ -53,6 +53,8 @@ function login()
     }
 }
 
+
+// This, and functions/functions.php needs to be modified to change images
 function home($pdo, $today_form_array)
 {
 	 $action = 'admin.php?page=home';
@@ -62,46 +64,82 @@ function home($pdo, $today_form_array)
     If ($_SERVER['REQUEST_METHOD'] == 'POST')	{
         $today_form_array = assignPostToFormArray($today_form_array);
         $today_form_array = validateFormArray($today_form_array, $pdo, 'quote');
-        $today_form_array = assignFileUploadToFormArray($today_form_array);
-        
+
+        //if(!isset($_GET['id'])){
+        		$today_form_array = assignFileUploadToFormArray($today_form_array);
+		  //}
+
         $is_form_valid = isFormValid($today_form_array);
-        
+
+
+				echo 'line 75';
+				echo '</br>';
+				var_dump($is_form_valid);
+				echo '<pre>';
+				var_dump($_POST);
+				echo '</pre>';
+				echo '<pre>';
+				var_dump($today_form_array);
+				echo '</pre>';
+				echo '<pre>';
+				var_dump($_FILES);
+				echo '</pre>';
+				echo 'line 84';
+				echo '</br>';
+				exit;
+
         // do not move files if $is_form_valid != true
         if($is_form_valid) {
             $today_form_array = moveFiles($today_form_array, 'images/');
         }
-        
+
         if($is_form_valid AND !isset($_GET['id'])) {
             save('quote', $today_form_array, $pdo); // saves post as a new row
-
+				header('Location: admin.php');
         }
         // $_GET['id'] is set because the value of the form's action attribute was set...
 	     // ...to ?id=.$id when the form was generated from clicking on the Edit hyperlink
 	     if($is_form_valid === true AND isset($_GET['id'])) {
 		      updateRow('quote', $today_form_array, $id, $pdo);  // updates a row from an edited post
+
+
+
 		      header('Location: admin.php');
 	     }
     }
-   
+
     If ($_SERVER['REQUEST_METHOD'] != 'POST' AND isset($_GET['id']))	{
     	  // note that it does not make sense to repopulate the input...
     	  // type='file' values with the user's file names as these may have...
     	  // changed on the users's computer since (s)he uploaded them.
         if($_GET['action']=='edit') {
             $action .= "&id=".$id;
-				$statement = getRowToEdit('quote', $id, $pdo); // gets a row to be edited using id of the row
-				$row = $statement->fetchObject();
-				foreach($today_form_array as $key => $array) {
-					$today_form_array[$key]['value'] = $row->$key;
-				}			
+						$statement = getRowToEdit('quote', $id, $pdo); // gets a row to be edited using id of the row
+						$row = $statement->fetchObject();
+						foreach($today_form_array as $key => $array) {
+							$today_form_array[$key]['value'] = $row->$key;
+						}
         }
+
+				echo 'line 121';
+				echo '</br>';
+				var_dump($is_form_valid);
+				echo '<pre>';
+				var_dump($today_form_array);
+				echo '</pre>';
+				echo '<pre>';
+				var_dump($_FILES);
+				echo '</pre>';
+				echo 'line 130';
+				echo '</br>';
+
         if($_GET['action']=='delete') {
             deleteRow('quote', $id, $pdo); // deletes a row using id of the row
             // need to call function to delete files
             header('Location: admin.php');
         }
     }
-        
+
     // if this point has been reached as the result of an invalid post...
     // ...(as opposed to a fresh visit to the page) then it makes sense to...
     // ...repopulate the input type='file' values if that is possible. If...
@@ -110,11 +148,24 @@ function home($pdo, $today_form_array)
     // ...an invalid post as opposed to editing a post as in the former...
     // ...situation there has presumably not been time for files to change...
     // ...on the user's machine.
-    $home_form = showForm($action, $today_form_array, true);
+    $home_form = showForm($action, $today_form_array, true, 'admin.php');
     $statement = getAll('quote', $pdo);
     $home_table = createTable($statement, 'home', true, true);
-    
+
     $content = array ($home_form, $home_table, '');
+
+		echo 'line 145';
+		echo '</br>';
+		var_dump($is_form_valid);
+		echo '<pre>';
+		var_dump($today_form_array);
+		echo '</pre>';
+		echo '<pre>';
+		var_dump($_FILES);
+		echo '</pre>';
+		echo 'line 154';
+		echo '</br>';
+
     return $content;
 }
 

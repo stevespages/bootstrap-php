@@ -7,19 +7,19 @@
 /*
  * MODELS
  */
- 
- 
+
+
 function deleteRow($table_name, $id, $pdo)
 {
     $sql = "DELETE FROM $table_name WHERE id = ?";
     $statement = $pdo->prepare($sql);
     $statement->execute([$id]);
     return $statement;
-}	
+}
 
-function getAll($table_name, $pdo)
+function getAll($table_name, $pdo, $ordered_by='id', $asc_or_desc='ASC')
 {
-    $sql = "SELECT * FROM $table_name";
+    $sql = "SELECT * FROM $table_name ORDER BY $ordered_by $asc_or_desc";
     $statement = $pdo->query($sql);
     return $statement;
 }
@@ -34,7 +34,8 @@ function getRowToEdit($table_name, $id, $pdo)
 }
 
 
-// it is not obvious how to bind parameters when they are in array variables of varying length
+// It is not obvious how to bind parameters when they are in array variables...
+// ... of varying length
 function save($table_name, $form_array, $pdo)
 {
     $fields = "";
@@ -61,6 +62,11 @@ function updateRow($table_name, $form_array, $id, $pdo)
     $sql = "UPDATE $table_name SET ";
     $values = array();
     foreach($form_array as $key => $array) {
+
+    	  //if($form_array[$key]['type'] == 'file') {
+        //break;
+        //}
+
         $sql .= $key."=?, ";
         $values[] = $array['value'];
     }
@@ -91,6 +97,49 @@ function createNavigation($navigation_links)
 	return $navigation;
 }
 
+// Creates HTML for site navigation: hamburger drop down
+function createNavigationHamburger($navigation_links)
+{
+
+$navigation = '
+	<!--    Made by Erik Terwan    -->
+	<!--   24th of November 2015   -->
+	<!--    All rights reserved    -->
+	<nav role="navigation">
+  <div id="menuToggle">
+    <!--
+    A fake / hidden checkbox is used as click reciever,
+    so you can use the :checked selector on it.
+    -->
+    <input type="checkbox" />
+
+    <!--
+    Some spans to act as a hamburger.
+
+    They are acting like a real hamburger,
+    not that McDonalds stuff.
+    -->
+    <span></span>
+    <span></span>
+    <span></span>
+
+    <!--
+    Too bad the menu has to be inside of the button
+    but hey, it\'s pure CSS magic.
+    -->
+    <ul id="menu">';
+
+	foreach($navigation_links as $key => $value) {
+	    $navigation .= '<a href="'.$value.'"><li>'.$key.'</li></a>';
+	}
+
+$navigation .= '
+    </ul>
+  	 </div>
+	 </nav>';
+
+	 return $navigation;
+}
 
 // might be good to add page=.$page so edit and delete requests go to the...
 // ... correct page.
@@ -121,8 +170,8 @@ function createTable($statement, $page, $editable=null, $display_id)
 }
 
 
-// conditionally add something like: <input type="hidden" name="MAX_FILE_SIZE" value="30000" /> 
-function showForm($action, $form_array, $enctype=false)// new argument
+// conditionally add something like: <input type="hidden" name="MAX_FILE_SIZE" value="30000" />
+function showForm($action, $form_array, $enctype=false, $cancel_page)// new argument
 {
     $form = "<form method='post' action=".$action;
     if($enctype === true) { // new if statement
@@ -130,29 +179,48 @@ function showForm($action, $form_array, $enctype=false)// new argument
     }
     $form .= ">";
     foreach($form_array as $key => $value) {
-    	$form .= "<p><label>".$form_array[$key]['form_label'];
-    	if($form_array[$key]['type']=='select') {
-    		$form .= " <select name='".$form_array[$key]['name']."'>";
-         foreach($form_array[$key]['options'] as $key_2 => $value_2) {
-         	$form .= '<option value="'.$key_2.'"';
-            if($key_2 == $form_array[$key]['value']) {
-            	$form .= ' selected';
-            }
-            $form .= '>'.$value_2.'</options>';
-         }
-         $form .= "</select";
+
+/*
+      if($form_array[$key]['type'] == 'file' && strlen($form_array[$key]["value"]) > 0) {
+        continue;
+      }
+*/
+    	   $form .= "<p><label>".$form_array[$key]['form_label'];
+    	   if($form_array[$key]['type']=='select') {
+    		     $form .= " <select name='".$form_array[$key]['name']."'>";
+             foreach($form_array[$key]['options'] as $key_2 => $value_2) {
+         	     $form .= '<option value="'.$key_2.'"';
+               if($key_2 == $form_array[$key]['value']) {
+            	    $form .= ' selected';
+               }
+             $form .= '>'.$value_2.'</options>';
+              }
+                $form .= "</select";
          } else {
-         	$form .= ' <input name="'.$form_array[$key]["name"]
-            .'" type="'.$form_array[$key]["type"]
-            .'" value="'.$form_array[$key]["value"]
-            .'"';
+
+              if($form_array[$key]['type'] == 'file' && strlen($form_array[$key]["value"]) > 0) {
+                $form .= ' <input name="'.$form_array[$key]["name"]
+                  .'" type="hidden" value="'.$form_array[$key]["value"]
+                  .'"';
+              } else {
+
+         	        $form .= ' <input name="'.$form_array[$key]["name"]
+                  .'" type="'.$form_array[$key]["type"]
+                  .'" value="'.$form_array[$key]["value"]
+                  .'"';
+                }
             if($form_array[$key]['required']=='required') {
             $form .=" required";
-            }				
+            }
         }
         $form .=	"></label> ".$form_array[$key]['error_mssg']."</p>";
     }
-    $form .= "<input type='submit'> <a href='index.php'> Cancel </a></form></br>";
+
+
+
+
+
+    $form .= "<input type='submit'> <a href='".$cancel_page."'> Cancel </a></form></br>";
     return $form;
 }
 
@@ -161,24 +229,24 @@ function showForm($action, $form_array, $enctype=false)// new argument
 /*
  * CONTROLLERS
  */
- 
- // this should be renamed to assignFileUploadToFormArray as it will assign...
+
+ // Assigns...
  // ...$_FILE['image_1']['name'] to $form_array['image_1']['value'] and also...
  // ...$_FILE['image_1']['error'] to $form_array['image_1]['error_mssg']
 function assignFileUploadToFormArray($form_array)
 {
     foreach($form_array as $key => $array) {
         if($form_array[$key]['type'] == 'file') {
-        	
-            if($_FILES[$key]['name'] != "" || $form_array[$key]['required'] == 'required') {
-      
+
+            //if(strlen($_FILES[$key]['value'])>0 || $form_array[$key]['required'] == 'required') {
+
                 $form_array[$key]['value'] = $_FILES[$key]['name'];
                 if($_FILES[$key]['error'] != 0) {
 		              $form_array[$key]['error_mssg'] = $_FILES[$key]['error'];
                 }
-              
-            }
-            
+
+            //}
+
         }
     }
     return $form_array;
@@ -189,7 +257,7 @@ function assignFileUploadToFormArray($form_array)
 // ...data. Obviously, the user entered values can not be anticipated but...
 // ...the names of the keys of $_POST elements are only accessed if they...
 // ...are in the $form_array. There is no mechanism to change the values...
-// ... of name elements in the $form_array except by hardcoding them. 
+// ... of name elements in the $form_array except by hardcoding them.
 function assignPostToFormArray($form_array)
 {
 	foreach($form_array as $key => $array)
@@ -245,7 +313,7 @@ function createSlug($navigation_name)
 // controller is used to select the appropriate controller.php file.
 // controller is used to append to the HTML title element.
 // controller is used page subheading (optionally).
-function getControllerName($navigation_names) 
+function getControllerName($navigation_names)
 {
 if(isset( $_GET['page'])) {
     // now whitelist $_GET['page'] to prevent spurious user input
@@ -264,6 +332,12 @@ if(isset( $_GET['page'])) {
 }
 }
 
+// Used by validateFormArray()
+// Will be used by showForm()??
+function isBlank($string)
+{
+  return (false === $string || (empty($string) && '0' != $string));
+}
 
 function isFormValid($form_array)
 {
@@ -278,42 +352,41 @@ function isFormValid($form_array)
 	return $is_form_valid;
 }
 
-// this function probably does not work
+// this function probably does not work: I think it does!
 // it should return true or the error message
 function moveFiles($form_array, $upload_dir)
 {
     foreach($form_array as $key => $array) {
         if($form_array[$key]['type'] == 'file') {
-        	
+
             if($form_array[$key]['value'] != "") {
-        	
-        	
+
+
             $upload_file = $upload_dir . basename(htmlentities($_FILES[$key]['name']));
 	         $move = move_uploaded_file($_FILES[$key]['tmp_name'], $upload_file);
 	         if($move != true) {
 	         	$form_array[$key]['error_mssg'] = 'There is a problem with this file';
 	         }
-	         
-	         
+
+
 	         }
-	         
+
 	     }
     }
     return $form_array;
 }
 
-
 // $db and $table_name arguments are only required if using a validation test which requires access to the database.
-// A test needs to recognise 
+// A test needs to recognise
 function validateFormArray($form_array, $db=null, $table_name=null)
 {
-	
+
 	foreach($form_array as $key => $array)
 	{
 		// from Symfony documentation web site
 		if($form_array[$key]['validate']=='not_blank')
 		{
-			if(false === $form_array[$key]['value'] || (empty($form_array[$key]['value']) && '0' != $form_array[$key]['value']))
+			if(isBlank($form_array[$key]['value']))
 			{
 				$form_array[$key]['error_mssg'] .= 'This field can not be empty';
 			}
@@ -323,7 +396,7 @@ function validateFormArray($form_array, $db=null, $table_name=null)
 			if (!filter_var($form_array[$key]['value'], FILTER_VALIDATE_EMAIL))
 			{
     			$form_array[$key]['error_mssg'] .= "Please enter a valid email address";
-			}	
+			}
 		}
 		if($form_array[$key]['validate']=='unique' AND !isset($_GET['id']))
 		{
@@ -338,6 +411,5 @@ function validateFormArray($form_array, $db=null, $table_name=null)
 			}
 		}
 	}
-	
 	return $form_array;
 }

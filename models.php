@@ -9,7 +9,7 @@ $today_form_array = array ( 	"quote_of_the_day" => array (
 																"error_mssg" => "",
 																"form_label" => "Add a quote<strong>!</strong>",
 																"type" => "text",
-																"validate" => "string"
+																"validate" => "not_blank"
 																),
 										"author" => array	(
 																"name" => "author",
@@ -37,5 +37,5 @@ $today_form_array = array ( 	"quote_of_the_day" => array (
 																"form_label" => "Image 2",
 																"type" => "file",
 																"validate" => ""
-																)
+															)
 );

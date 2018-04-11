@@ -1,7 +1,8 @@
 <?php
 
 /*
- * FUNCTIONS USED from functions/functions.php:
+ * The following functions, declared in functions/functions.php, are used in...
+ * ...in this website:
  * createTable()
  * createLinks()
  * createNavigation()
@@ -11,10 +12,10 @@
  * innerPeace()
  * action()
  *
- * This site demonstrates a boilerplate website with admin backend that can...
+ * This site is a boilerplate website with an admin backend that can...
  * ...be used to set up new sites.
  * 
- * The site should use all the functions in functions/functions.php...
+ * This site should use all the functions in functions/functions.php...
  * ...Automated web testing software should be used to test the site's...
  * ...functionality. This tests the site and the functions used by it.
  *
@@ -75,20 +76,20 @@ function action()
 	$content = array ('<p>this page will help you to take action</p>', '', '');
    return $content;
 }
-	
-$main_heading = 'Test Functions';
 
-$controller = getControllerName($navigation_names);
+$controller = getControllerName($navigation_names);	
+$main_heading = 'Test Functions';
 $sub_heading = ucwords(str_replace('-', ' ', $controller));
 $title = 'Today: '.$sub_heading;
-
-
-
 
 // the values of $controller relate to the elements in $navigation
 switch ($controller) {
     case "home":
         $content = home($pdo);
+        // If a page needs its own template.php file uncomment the next...
+        // ...statement. Also make the assignment of $template after this...
+        // ...switch statement conditional on (!isset($template)).
+        // $template = include_once 'template-home.php';
         break;
     case "inner-peace":
         $content = innerPeace();
@@ -97,13 +98,14 @@ switch ($controller) {
         $content = action();
 }
 
-// If all pages use the same template.php file uncomment the next line of code.
-// This template.php can utilise the $title, $navigation, $main_heading and ...
-// ...$sub_heading variables.
-// If any pages use a different template.php that file must be included from...
-// ...within that page function. These page functions and template.php files...
-// ...will need to set their title, navigation, main and sub headings.
+// If all pages use the same template.php file the next statement does not...
+// ...need to be inside conditional on (!isset($template))
+// If all pages use their own template.php the next statement is not needed.
+// If some but not all pages use their own template.php file then the next...
+// ...statement needs to be conditional on (!isset($template))
+if(!isset($template)) {
 $template = include_once 'template.php';
+}
 
 // If template.php files are being included from within page functions use:
 //echo $content;
