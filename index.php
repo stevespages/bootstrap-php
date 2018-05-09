@@ -14,7 +14,7 @@
  *
  * This site is a boilerplate website with an admin backend that can...
  * ...be used to set up new sites.
- * 
+ *
  * This site should use all the functions in functions/functions.php...
  * ...Automated web testing software should be used to test the site's...
  * ...functionality. This tests the site and the functions used by it.
@@ -36,9 +36,9 @@ $navigation_names = array ("Home", "Inner Peace", "Action");
 // An associative array. Eg "Inner Peace" => "index.php?page=inner_peace"
 // $navigation_links can be modified. If modified within controller...
 // ...functions the changes will be page specific
-$navigation_links = createLinks($navigation_names, 'index.php');
+$navigation_links = createLinks2($navigation_names, 'index.php');
 // Adding a link
-$navigation_links['Admin'] = 'admin.php';
+$navigation_links['Admin'] = 'admin';
 // Creating a variable containing an html formatted navigation menu
 $navigation = createNavigation($navigation_links);
 
@@ -53,9 +53,9 @@ function home($pdo)
 {
     $statement = getAll('quote', $pdo);
     $home_table = createTable($statement, 'home', false, false);
-    
+
     $content = array ('', $home_table, '');
-    
+
     // if any pages on the site need a different template.php file the next...
     // ...line of code will need to uncommented for every page function on...
     // ...the site and then $template (not $content) will need to be...
@@ -77,7 +77,7 @@ function action()
    return $content;
 }
 
-$controller = getControllerName($navigation_names);	
+$controller = getControllerName2($navigation_links);
 $main_heading = 'Test Functions';
 $sub_heading = ucwords(str_replace('-', ' ', $controller));
 $title = 'Today: '.$sub_heading;
@@ -96,6 +96,9 @@ switch ($controller) {
         break;
     case "action":
         $content = action();
+        break;
+    case "admin":
+        header('Location: admin.php');
 }
 
 // If all pages use the same template.php file the next statement does not...

@@ -293,6 +293,18 @@ function createLinks($navigation_names, $front_controller)
     return $navigation_links;
 }
 
+// change links so query strings replaced pretty url. ie...
+// ... functions/index.php?page=home becomes...
+// ... functions/home
+function createLinks2($navigation_names, $front_controller)
+{
+    $navigation_links = array();
+    foreach($navigation_names as $value) {
+    	  $navigation_links[$value] = str_replace(" ", "-", strtolower($value));
+    }
+    return $navigation_links;
+}
+
 
 /* NOT REQUIRED?
 // Creates a slug from a navigation name
@@ -330,6 +342,28 @@ if(isset( $_GET['page'])) {
 	$controller = 'home';
 	return $controller;
 }
+}
+
+// this is being converted to handle pretty urls not query strings
+function getControllerName2($navigation_links)
+{
+
+    //remove the directory path we don't want
+    $request  = str_replace("/Public/functions/", "", $_SERVER['REQUEST_URI']);
+
+    //split the path by '/'
+    $params = explode("/", $request);
+
+    //keep users from requesting any file they want
+    $safe_pages = array("users", "search", "thread");
+
+    //assign called page to variable for return
+    if(in_array($params[0], $navigation_links)) {
+        $page = $params[0];
+      } else {
+        $page = 'home';
+      }
+    return $page;
 }
 
 // Used by validateFormArray()
